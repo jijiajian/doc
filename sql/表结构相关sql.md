@@ -14,7 +14,9 @@ alter  database  character  set utf8;
    describe  table_name;  
    desc  table_name;  /*简写*/
 
-2. `详细版本(保留了个人认为比较重要的部分字段)`
+2. `较详细版`  
+   show full columns from table_name;
+3. `详细版本(保留了个人认为比较重要的部分字段)`
 ```
 SELECT
 	column_name,
