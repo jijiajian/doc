@@ -93,3 +93,4 @@ ALTER TABLE  test_create  MODIFY after_colum2  VARCHAR(30) NOT NULL DEFAULT '' C
 ```
 ALTER TABLE  test_rename  CHANGE after_colum2 new_column_name  VARCHAR(30) NOT NULL DEFAULT '' COMMENT '测试修改并重命名';  
 ```
+
