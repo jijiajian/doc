@@ -10,3 +10,9 @@ git add README.md
 git commit -m "first commit"
 git remote add origin git@github.com:tripleJ1995/java_pick_up.git
 git push -u origin master
+
+
+## 克隆速度快
+git clone xxxxx.git --depth=1
+
+git fetch --unshallow
