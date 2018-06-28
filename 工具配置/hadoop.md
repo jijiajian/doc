@@ -5,10 +5,41 @@
 注意:
 
 网络适配器设置为 桥接模式  
-cd /etc/sysconfig/network-scripts/  
+cd /etc/sysconfig/network-scripts/ 
 vi ifcfg-ens33  
 将里面的ONBOOT=no改为ONBOOT=yes,保存退出  
 service network restart
+
+### NAT
+
+vi ifcfg-ens33 
+```
+# 改
+BOOTPROTO=static
+ONBOOT=yes
+
+# 增
+# NAT设置里网关
+GATEWAY=192.168.80.2
+# 本机ip
+IPADDR=192.168.80.66:50070
+# 子网掩码
+NETMASK=255.255.255.0
+# DNS
+DNS1=114.114.114.114
+DNS2=8.8.8.8
+```
+## 关闭防火墙
+关闭防火墙（适用于centos7，低版本不适用）
+分别执行如下两条命令：
+
+systemctl stop firewalld.service
+systemctl disable firewalld.service
+
+## 关闭SELinux
+vi /etc/selinux/config
+将SELINUX=enforcing改为SELINUX=disabled 
+重启
 
 
 ## jdk的安装
@@ -25,22 +56,35 @@ wget http://download.oracle.com/otn-pub/java/jdk/8u171-b11/512cd62ec5174c3487ac1
 rpm -ivh jdk-8u171-b14-jdk-8u111-linux-x64.rpm
 
 ```
-1. yum  install  java-1.8.0-openjdk   java-1.8.0-openjdk-devel
-
 2. 配置环境变量
 vi /etc/profile
 
 在末尾插入如下代码(java home 根据你装的jdk版本填写)
 ```
 # Java Setting
-JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64
-PATH=$PATH:$JAVA_HOME/bin  
-CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar  
-export JAVA_HOME  CLASSPATH  PATH 
+JAVA_HOME=/opt/jdk1.8.0_171
+PATH=$PATH:$JAVA_HOME/bin
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export JAVA_HOME  CLASSPATH  PATH
 ```
 3. 执行如下命令使设置生效  
 source  /etc/profile
 ```
+
+export JAVA_HOME=/opt/jdk1.8.0_171
+
+## 修改主机名
+vi /etc/sysconfig/network
+
+NETWORKING=yes
+HOSTNAME=hadoop01
+
+
+vi /etc/hosts
+localhost.localdomain -> hadoop01
+
+vi /etc/hostname
+hadoop01
 
 
 
@@ -74,16 +118,20 @@ rm (选项)(参数)
 修改主机名  vi /etc/hostname
 
 
+export HADOOP_HOME=/usr/local/hadoop  
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin 
+
+
 https://www.cnblogs.com/thousfeet/p/8618696.html
 
 ## hadoop
 
 vi /etc/profile
-export HADOOP_HOME=/usr/local/hadoop/hadoop-3.0.3
-export PATH=$PATH:$HADOOP_HOME/bin 
+export HADOOP_HOME=/usr/local/software/hadoop-3.0.3
+export PATH=$PATH:$HADOOP_HOME/bin
 
 hadoop目录/etc/hadoop/hadoop-env.sh
-export JAVA_HOME=/usr/java/latest
+export JAVA_HOME=/usr/local/software/jdk1.8.0_171
 
 export HDFS_NAMENODE_SECURE_USER=root
 export HDFS_DATANODE_SECURE_USER=root
@@ -98,30 +146,29 @@ chmod 0600 ~/.ssh/authorized_keys
 
 ### etc/hadoop/core-site.xml
 
-<configuration>  
-    <!-- 指定HDFS老大（namenode）的通信地址 -->  
-    <property>  
-        <name>fs.defaultFS</name>  
-        <value>hdfs://localhost:9000</value>  
-    </property>  
-    <!-- 指定hadoop运行时产生文件的存储路径 -->  
-    <property>  
-        <name>hadoop.tmp.dir</name>  
-        <value>/usr/hadoop/tmp</value>  
-    </property>  
-</configuration>  
+<configuration>
+    <!-- 指定HDFS老大（namenode）的通信地址 -->
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://hadoop01:9000</value>
+    </property>
+    <!-- 指定hadoop运行时产生文件的存储路径 -->
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/usr/local/hdpdata/tmp</value>
+    </property>
+</configuration>
 
 ### etc/hadoop/hdfs-site.xml 
 
 <property>
-    <name>dfs.name.dir</name>
-    <value>/usr/hadoop/hdfs/name</value>
+    <name>dfs.namenode.name.dir</name>
+    <value>/usr/local/hdpdata/hdfs/dfsname</value>
     <description>namenode上存储hdfs名字空间元数据 </description> 
 </property>
-
 <property>
-    <name>dfs.data.dir</name>
-    <value>/usr/hadoop/hdfs/data</value>
+    <name>dfs.datanode.data.dir</name>
+    <value>/usr/local/hdpdata/hdfs/dfsdata</value>
     <description>datanode上数据块的物理存储位置</description>
 </property>
 <!-- 设置hdfs副本数量 -->
@@ -131,7 +178,7 @@ chmod 0600 ~/.ssh/authorized_keys
 </property>
 <!-- 设置hdfs页面端口 -->
 <property>
-  <name>dfs.http.address</name>
+  <name>dfs.namenode.http-address</name>
   <value>0.0.0.0:50070</value>
 </property>
 
@@ -140,3 +187,26 @@ sbin/start-dfs.sh
 
 
 http://192.168.0.5:50070
+
+sbin/hadoop-daemon.sh start namenode
+
+
+export HDFS_NAMENODE_USER=root
+export HDFS_DATANODE_USER=root
+export HDFS_SECONDARYNAMENODE_USER=root
+export YARN_RESOURCEMANAGER_USER=root
+export YARN_NODEMANAGER_USER=root
+
+
+tencent://message/?uin=2112857847&Site=http://vps.shuidazhe.com&Menu=yes
+
+待发布>待审核>审核不通过>优化中>扣费中>已关闭
+
+
+
+# Java Setting
+JAVA_HOME=/opt/jdk1.8.0_171
+HADOOP_HOME=/opt/hadoop-3.1.0
+PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export JAVA_HOME HADOOP_HOME CLASSPATH PATH
