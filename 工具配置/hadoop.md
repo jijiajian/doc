@@ -150,7 +150,7 @@ chmod 0600 ~/.ssh/authorized_keys
     <!-- 指定HDFS老大（namenode）的通信地址 -->
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://hadoop01:9000</value>
+        <value>hdfs://localhost:9000</value>
     </property>
     <!-- 指定hadoop运行时产生文件的存储路径 -->
     <property>
@@ -186,7 +186,7 @@ bin/hdfs namenode -format
 sbin/start-dfs.sh
 
 
-http://192.168.0.5:50070
+http://192.168.80.66:50070
 
 sbin/hadoop-daemon.sh start namenode
 
@@ -204,9 +204,14 @@ tencent://message/?uin=2112857847&Site=http://vps.shuidazhe.com&Menu=yes
 
 
 
-# Java Setting
+# Java and hadoop setting
 JAVA_HOME=/opt/jdk1.8.0_171
-HADOOP_HOME=/opt/hadoop-3.1.0
+HADOOP_HOME=/opt/hadoop-2.9.1
 PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 export JAVA_HOME HADOOP_HOME CLASSPATH PATH
+
+export HDFS_NAMENODE_SECURE_USER=root
+export HDFS_DATANODE_SECURE_USER=root
+export HDFS_SECONDARYNAMENODE_USER=root
+JAVA_HOME=/opt/jdk1.8.0_171
