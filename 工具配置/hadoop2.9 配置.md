@@ -142,4 +142,23 @@ sbin/start-dfs.sh
 也可以访问
 http://192.168.80.66:50070
 
+8. Yarn 配置 etc/hadoop/mapred-site.xml
 
+<property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+</property>
+
+9. Yarn 配置 etc/hadoop/yarn-site.xml  
+<property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+</property>
+
+10. 启动并运行官方测试例子
+- sbin/start-yarn.sh
+- jps(查看相关进程是否启动, 若没有去看相应的log: cd logs)
+- 访问 http://192.168.0.5:8088/cluster 查看yarn 调度状况
+- 进入例子目录  cd share/hadoop/mapreduce/
+- hadoop jar hadoop-mapreduce-examples-2.9.1.jar wordcount /hello.txt /output
+- 查看结果  hadoop fs -cat /output/part-r-00000
