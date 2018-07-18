@@ -194,7 +194,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     // Additionally, if the table array has not been allocated, this
     // field holds the initial array capacity, or zero signifying
     // DEFAULT_INITIAL_CAPACITY.)
-    //容量*加载因子
+    // 扩容阈值  即 容量*加载因子
     int threshold;
 
     /**
@@ -219,11 +219,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if (initialCapacity < 0)
             throw new IllegalArgumentException("Illegal initial capacity: " +
                                                initialCapacity);
+        //若容量大于最大容量  则设置为最大容量
         if (initialCapacity > MAXIMUM_CAPACITY)
             initialCapacity = MAXIMUM_CAPACITY;
+        //负载因子不合法 抛出异常
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal load factor: " +
                                                loadFactor);
+        // 负载因子赋值
         this.loadFactor = loadFactor;
         this.threshold = tableSizeFor(initialCapacity);
     }
