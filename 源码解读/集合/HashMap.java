@@ -30,17 +30,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
-     * 默认负载因子  即 实际容量 达到容量 * 0.75 时 进行扩容 
+     * 默认负载因子  即 实际容量 达到 容量 * 0.75 时 进行扩容 
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /**
-     * The bin count threshold for using a tree rather than list for a
-     * bin.  Bins are converted to trees when adding an element to a
-     * bin with at least this many nodes. The value must be greater
-     * than 2 and should be at least 8 to mesh with assumptions in
-     * tree removal about conversion back to plain bins upon
-     * shrinkage.
+     * 链表长度到达该值才会转化为一颗红黑树
      */
     static final int TREEIFY_THRESHOLD = 8;
 
@@ -52,15 +47,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int UNTREEIFY_THRESHOLD = 6;
 
     /**
-     * The smallest table capacity for which bins may be treeified.
-     * (Otherwise the table is resized if too many nodes in a bin.)
-     * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
-     * between resizing and treeification thresholds.
+     * 哈希表容量达到该值才会将链表转化为红黑树
      */
     static final int MIN_TREEIFY_CAPACITY = 64;
 
     /**
-     * 结点
+     * 节点
      */
     static class Node<K,V> implements Map.Entry<K,V> {
         final int hash;
@@ -146,7 +138,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a power of two size for the given target capacity.
+     * 返回大于等于且最接近cap 且 是2的N次幂的数
+     * cap = 3 返回 4
+     * cap = 5 返回 8
+     * cap = 8 返回 8
+     * 这个方法的作用就是永远保证哈希表的长度永远都为2的N次幂
      */
     static final int tableSizeFor(int cap) {
         int n = cap - 1;
@@ -166,13 +162,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient Node<K,V>[] table;
 
     /**
-     * Holds cached entrySet(). Note that AbstractMap fields are used
-     * for keySet() and values().
+     * 元素集合
      */
     transient Set<Map.Entry<K,V>> entrySet;
 
     /**
-     * The number of key-value mappings contained in this map.
+     * 元素个数， key的个数
      */
     transient int size;
 
@@ -186,21 +181,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient int modCount;
 
     /**
-     * The next size value at which to resize (capacity * load factor).
-     *
-     * @serial
+     * 扩容阈值  即 容量*负载因子
      */
-    // (The javadoc description is true upon serialization.
-    // Additionally, if the table array has not been allocated, this
-    // field holds the initial array capacity, or zero signifying
-    // DEFAULT_INITIAL_CAPACITY.)
-    // 扩容阈值  即 容量*加载因子
     int threshold;
 
     /**
      * 负载因子
-     *
-     * @serial
      */
     final float loadFactor;
 
@@ -432,12 +418,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Initializes or doubles table size.  If null, allocates in
-     * accord with initial capacity target held in field threshold.
-     * Otherwise, because we are using power-of-two expansion, the
-     * elements from each bin must either stay at same index, or move
-     * with a power of two offset in the new table.
-     * 自动扩容
+     * 自动扩容函数
      * @return the table
      */
     final Node<K,V>[] resize() {
@@ -460,22 +441,30 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 //则 新的阈值 = 老的阈值 * 2
                 newThr = oldThr << 1; // double threshold
         }
-        else if (oldThr > 0) // initial capacity was placed in threshold
-            //若是老的阈值 > 0 && 原来容量 <=0
-            //则新的容量 = 老的阈值
+        else if (oldThr > 0) 
+            // 若是老的阈值 > 0 && 原来容量 <=0
+            // 初始容量被置于阈值，
+            // 调用有参构造函数之后，第一次put的时候就会进入这里
+            // 则新的容量 = 老的阈值
             newCap = oldThr;
         else {
-            //无参构造第一次put元素的时候
+            //调用无参构造函数之后，第一次put的时候就会进入这里
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
-        
+        //若是新的阈值为0
         if (newThr == 0) {
+            //新的阈值 = 新的容量 * 负载因子
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                       (int)ft : Integer.MAX_VALUE);
         }
+        //阈值赋值完成
         threshold = newThr;
+
+        /**
+         * 下面将要进行哈希表的扩容
+         */
         @SuppressWarnings({"rawtypes","unchecked"})
             Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
         table = newTab;
