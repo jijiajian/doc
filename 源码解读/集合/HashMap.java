@@ -382,6 +382,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         p.next = newNode(hash, key, value, null);
 
                         //若链表长度大于等于该值,则将链表转化为一棵红黑树
+                        //必须同时满足哈希表长度达到MIN_TREEIFY_CAPACITY
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                             treeifyBin(tab, hash);
                         break;
@@ -473,11 +474,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
                     oldTab[j] = null;
+                    //若是原哈希表在该位置只有一个元素
                     if (e.next == null)
                         newTab[e.hash & (newCap - 1)] = e;
                     else if (e instanceof TreeNode)
+                        //若是树节点,也要遍历节点,重新确定其在哈希表的位置(与下面的链表拆分类似)
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
-                    else { // preserve order
+                    else {
+                        /**
+                         * 若是链表
+                         * 则将链表拆分为两个链表
+                         * 若e.hash & oldCap = 0,则在哈希表的位置不变
+                         * 否则组成新的链表, 位置为原来的位置 + oldCap
+                         */
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
@@ -498,10 +507,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                                 hiTail = e;
                             }
                         } while ((e = next) != null);
+                        //在哈希表中位置保持不变
                         if (loTail != null) {
                             loTail.next = null;
                             newTab[j] = loHead;
                         }
+                        //位置变为原来的位置 + oldCap
                         if (hiTail != null) {
                             hiTail.next = null;
                             newTab[j + oldCap] = hiHead;
@@ -519,6 +530,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
+        //
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
         else if ((e = tab[index = (n - 1) & hash]) != null) {
